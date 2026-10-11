@@ -2,9 +2,10 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>임검침로 및 예상시간 계산기</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; line-height: 1.6; background-color: #f4f7f6; }
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; margin: 0; line-height: 1.6; background-color: #f4f7f6; }
         .container { max-width: 500px; margin: 0 auto; border: none; padding: 30px; border-radius: 15px; background-color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #333; margin-bottom: 25px; }
         .input-group { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
@@ -15,6 +16,16 @@
         #result { margin-top: 25px; padding: 20px; background-color: #e8f4f8; border-left: 5px solid #3498db; border-radius: 5px; }
         .result-item { margin-bottom: 10px; font-size: 18px; }
         .highlight { color: #e74c3c; font-weight: bold; }
+        * { box-sizing: border-box; }
+        input { font-size: 16px; }
+        label { flex: 1; padding-right: 10px; }
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .container { padding: 20px 15px; }
+            .input-group { flex-direction: column; align-items: stretch; }
+            .input-group label { margin-bottom: 5px; padding-right: 0; }
+            input { width: 100%; }
+        }
     </style>
 </head>
 <body>
