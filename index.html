@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>임검침로 및 예상시간 계산기</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; line-height: 1.6; background-color: #f4f7f6; }
+        .container { max-width: 500px; margin: 0 auto; border: none; padding: 30px; border-radius: 15px; background-color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; margin-bottom: 25px; }
+        .input-group { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        label { font-weight: bold; color: #555; }
+        input { width: 120px; padding: 8px; border: 1px solid #ddd; border-radius: 5px; text-align: right; }
+        button { width: 100%; padding: 12px; background-color: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; transition: background 0.3s; }
+        button:hover { background-color: #34495e; }
+        #result { margin-top: 25px; padding: 20px; background-color: #e8f4f8; border-left: 5px solid #3498db; border-radius: 5px; }
+        .result-item { margin-bottom: 10px; font-size: 18px; }
+        .highlight { color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>임검(Interception) 계산기</h2>
+    
+    <div class="input-group">
+        <label>상대선 방위 (Bearing, °):</label>
+        <input type="number" id="bearing" placeholder="0~360">
+    </div>
+    <div class="input-group">
+        <label>상대선 거리 (Range, NM):</label>
+        <input type="number" id="range" placeholder="해리">
+    </div>
+    <div class="input-group">
+        <label>상대선 침로 (Course, °):</label>
+        <input type="number" id="tCourse" placeholder="0~360">
+    </div>
+    <div class="input-group">
+        <label>상대선 속력 (Target Speed, kts):</label>
+        <input type="number" id="tSpeed" placeholder="노트">
+    </div>
+    <div class="input-group">
+        <label>우리선박 속력 (Own Speed, kts):</label>
+        <input type="number" id="oSpeed" placeholder="노트">
+    </div>
+    
+    <button onclick="calculate()">계산 실행</button>
+
+    <div id="result">
+        입력 후 계산 버튼을 눌러주세요.
+    </div>
+</div>
+
+<script>
+function calculate() {
+    // 입력값 로드
+    const brng = parseFloat(document.getElementById('bearing').value); 
+    const rng = parseFloat(document.getElementById('range').value);
+    const tCrs = parseFloat(document.getElementById('tCourse').value);
+    const tSpd = parseFloat(document.getElementById('tSpeed').value);
+    const oSpd = parseFloat(document.getElementById('oSpeed').value);
+
+    if (isNaN(brng) || isNaN(rng) || isNaN(tCrs) || isNaN(tSpd) || isNaN(oSpd)) {
+        alert("모든 항목에 숫자를 입력해주세요.");
+        return;
+    }
+
+    const toRad = Math.PI / 180;
+    const toDeg = 180 / Math.PI;
+
+    // 1. 임검침로 계산 (Maneuvering Board 원리)
+    const alpha = (tCrs - brng + 360) % 360;
+    
+    // 사인 법칙: sin(theta) / tSpd = sin(alpha) / oSpd
+    const sinTheta = (tSpd / oSpd) * Math.sin(alpha * toRad);
+    
+    if (Math.abs(sinTheta) > 1) {
+        document.getElementById('result').innerHTML = "<strong>계산 불가:</strong> 우리 선박의 속력이 너무 느려 상대선을 따라잡을 수 없습니다.";
+        return;
+    }
+
+    const theta = Math.asin(sinTheta) * toDeg;
+    const interceptionCourse = (brng + theta + 360) % 360;
+
+    // 2. 상대 속도(Relative Speed) 계산
+    const oVx = oSpd * Math.sin(interceptionCourse * toRad);
+    const oVy = oSpd * Math.cos(interceptionCourse * toRad);
+    const tVx = tSpd * Math.sin(tCrs * toRad);
+    const tVy = tSpd * Math.cos(tCrs * toRad);
+    
+    const rVx = oVx - tVx;
+    const rVy = oVy - tVy;
+    const relativeSpeed = Math.sqrt(rVx*rVx + rVy*rVy);
+
+    // 3. 예상 시간 계산 (시간 = 거리 / 상대속도)
+    const timeHours = rng / relativeSpeed;
+    const totalMinutes = Math.round(timeHours * 60);
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+
+    // 결과 출력
+    let timeString = h > 0 ? `${h}시간 ${m}분` : `${m}분`;
+
+    document.getElementById('result').innerHTML = `
+        <div class="result-item">권고 임검침로: <span class="highlight">${interceptionCourse.toFixed(1)}°</span></div>
+        <div class="result-item">예상 소요시간: <span class="highlight">${timeString}</span></div>
+        <div style="font-size: 12px; color: #777; margin-top:10px;">* 상대 속도 ${relativeSpeed.toFixed(1)} kts 기준</div>
+    `;
+}
+</script>
+
+</body>
+</html>
